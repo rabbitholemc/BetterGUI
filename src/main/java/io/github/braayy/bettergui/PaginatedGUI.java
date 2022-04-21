@@ -1,5 +1,6 @@
 package io.github.braayy.bettergui;
 
+import io.github.braayy.bettergui.pagination.GUISlotsPerPage;
 import io.github.braayy.bettergui.slot.GUISlot;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,6 +12,7 @@ public abstract class PaginatedGUI extends GUI {
     private int currentPage;
     private GUISlotsPerPage slotsPerPage;
     private List<GUISlot> slots;
+    private GUISlot pageLeftoverSlot;
 
     public PaginatedGUI() {}
 
@@ -20,6 +22,16 @@ public abstract class PaginatedGUI extends GUI {
 
     protected void setSlots(List<GUISlot> slots) {
         this.slots = slots;
+    }
+
+    protected void setPageLeftoverSlot(@NotNull GUISlot pageLeftoverSlot) {
+        Objects.requireNonNull(pageLeftoverSlot, "page leftover slot cannot be null");
+
+        this.pageLeftoverSlot = pageLeftoverSlot;
+    }
+
+    protected GUISlot getPageLeftoverSlot() {
+        return pageLeftoverSlot;
     }
 
     protected boolean isSlotsLoaded() {
@@ -36,6 +48,10 @@ public abstract class PaginatedGUI extends GUI {
         this.slotsPerPage = slotsPerPage;
     }
 
+    protected GUISlotsPerPage getSlotsPerPage() {
+        return slotsPerPage;
+    }
+
     protected int getCurrentPage() {
         return currentPage;
     }
@@ -43,7 +59,7 @@ public abstract class PaginatedGUI extends GUI {
     protected int getMaxPage() {
         if (slots == null || slotsPerPage == null) return 0;
 
-        return slots.size() / slotsPerPage.value;
+        return slots.size() / slotsPerPage.getSlotsPerPage();
     }
 
     protected void nextPage(boolean updateTitle) {
@@ -67,13 +83,21 @@ public abstract class PaginatedGUI extends GUI {
     }
 
     void pageSetup() {
-        int startIndex = currentPage * slotsPerPage.value;
-        int endIndex = Math.min(currentPage * slotsPerPage.value + slotsPerPage.value, slots.size());
+        Objects.requireNonNull(slots, "Slot list was null at rendering time");
 
+        int startIndex = currentPage * slotsPerPage.getSlotsPerPage();
+        int endIndex = Math.min(currentPage * slotsPerPage.getSlotsPerPage() + slotsPerPage.getSlotsPerPage(), slots.size());
         List<GUISlot> slotsView = slots.subList(startIndex, endIndex);
-        int slot = 9;
+
+        int sequence = 0;
         for (GUISlot guiSlot : slotsView) {
-            addSlot(slot++, guiSlot);
+            addSlot(slotsPerPage.mapSequenceToSlotIndex(sequence++), guiSlot);
+        }
+
+        int leftover = slotsPerPage.getSlotsPerPage() - slotsView.size();
+        if (pageLeftoverSlot != null && leftover > 0) {
+            for (int i = 0; i < leftover; i++)
+                addSlot(slotsPerPage.mapSequenceToSlotIndex(sequence++), pageLeftoverSlot);
         }
     }
 }

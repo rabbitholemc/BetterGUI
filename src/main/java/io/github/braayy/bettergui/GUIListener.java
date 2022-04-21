@@ -29,9 +29,8 @@ public class GUIListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
-        if (!(event.getClickedInventory().getHolder() instanceof GUI)) return;
+        if (!(event.getClickedInventory().getHolder() instanceof GUI gui)) return;
 
-        GUI gui = (GUI) event.getClickedInventory().getHolder();
         if (gui.updating || gui.backing) return;
 
         GUISlot slot = gui.slotMap.get(event.getSlot());
@@ -62,8 +61,7 @@ public class GUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!(event.getInventory().getHolder() instanceof GUI)) return;
-        GUI gui = (GUI) event.getInventory().getHolder();
+        if (!(event.getInventory().getHolder() instanceof GUI gui)) return;
 
         if (gui.updating) {
             gui.updating = false;

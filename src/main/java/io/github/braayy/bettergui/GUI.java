@@ -44,6 +44,8 @@ public abstract class GUI implements InventoryHolder {
 
     protected void onClose() {}
 
+    protected void postSetup() {}
+
     protected void setTitle(@NotNull String title) {
         Objects.requireNonNull(title, "title cannot be null");
 
@@ -68,6 +70,11 @@ public abstract class GUI implements InventoryHolder {
     @Nullable
     protected GUI getParent() {
         return parent;
+    }
+
+    @Nullable
+    protected GUISlot getSlot(int index) {
+        return this.slotMap.get(index);
     }
 
     protected void becomeSync() {
@@ -146,6 +153,7 @@ public abstract class GUI implements InventoryHolder {
                 ((PaginatedGUI) this).pageSetup();
             if (this instanceof StateGUI<?, ?>)
                 ((StateGUI<?, ?>) this).stateSetup();
+            postSetup();
 
             this.updating = true;
             Inventory inventory = getInventory();
@@ -161,6 +169,7 @@ public abstract class GUI implements InventoryHolder {
                 ((PaginatedGUI) this).pageSetup();
             if (this instanceof StateGUI<?, ?>)
                 ((StateGUI<?, ?>) this).stateSetup();
+            postSetup();
 
             this.updating = true;
             Inventory inventory = getInventory();
@@ -195,6 +204,7 @@ public abstract class GUI implements InventoryHolder {
                 ((PaginatedGUI) this).pageSetup();
             if (this instanceof StateGUI<?, ?>)
                 ((StateGUI<?, ?>) this).stateSetup();
+            postSetup();
 
             Inventory inventory = getInventory();
             if (!simple) {
@@ -213,6 +223,7 @@ public abstract class GUI implements InventoryHolder {
                 ((PaginatedGUI) this).pageSetup();
             if (this instanceof StateGUI<?, ?>)
                 ((StateGUI<?, ?>) this).stateSetup();
+            postSetup();
 
             Inventory inventory = getInventory();
             if (!simple) {
@@ -257,13 +268,4 @@ public abstract class GUI implements InventoryHolder {
 
         return this.openInventory;
     }
-
-    /*
-    00 01 02 03 04 05 06 07 08
-    09 10 11 12 13 14 15 16 17
-    18 19 20 21 22 23 24 25 26
-    27 28 29 30 31 32 33 34 35
-    36 37 38 39 40 41 42 43 44
-    45 46 47 48 49 50 51 52 53
-    */
 }
