@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Predicate;
 
 public abstract class GUI implements InventoryHolder {
     final Map<Integer, GUISlot> slotMap = new HashMap<>();
@@ -121,6 +122,14 @@ public abstract class GUI implements InventoryHolder {
 
     protected void addPlaceable(int slotNumber, @Nullable GUISlotPlaceableCleanClickHandler handler) {
         addSlot(slotNumber, new GUISlotPlaceable(handler));
+    }
+
+    protected void addPlaceable(int slotNumber, @Nullable GUISlotPlaceableClickHandler handler, @Nullable Predicate<ItemStack> filter) {
+        addSlot(slotNumber, new GUISlotPlaceable(handler, filter));
+    }
+
+    protected void addPlaceable(int slotNumber, @Nullable GUISlotPlaceableCleanClickHandler handler, @Nullable Predicate<ItemStack> filter) {
+        addSlot(slotNumber, new GUISlotPlaceable(handler, filter));
     }
 
     protected void addPlaceable(int slotNumber) {
