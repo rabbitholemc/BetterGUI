@@ -2,6 +2,7 @@ package io.github.braayy.bettergui;
 
 import io.github.braayy.bettergui.handler.GUISlotClickHandler;
 import io.github.braayy.bettergui.handler.GUISlotPlaceableClickHandler;
+import io.github.braayy.bettergui.listener.InputListener;
 import io.github.braayy.bettergui.slot.*;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -23,10 +24,12 @@ public class GUIListener implements Listener {
     public static void register(JavaPlugin plugin) {
         if (registered) {
             plugin.getLogger().warning("Tried to register GUIListener twice!");
+
             return;
         }
 
         Bukkit.getPluginManager().registerEvents(new GUIListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new InputListener(), plugin);
         registered = true;
     }
 
@@ -91,7 +94,7 @@ public class GUIListener implements Listener {
         } else if (gui.backing) {
             gui.backing = false;
             gui.onClose();
-        } else {
+        } else if (!gui.waitingInput) {
             GUI next = gui;
 
             while (next != null) {

@@ -3,26 +3,34 @@ package io.github.braayy.bettergui;
 import io.github.braayy.bettergui.handler.GUISlotCleanClickHandler;
 import io.github.braayy.bettergui.handler.GUISlotPlaceableCleanClickHandler;
 import io.github.braayy.bettergui.handler.GUISlotPlaceableClickHandler;
+import io.github.braayy.bettergui.input.InputRequest;
+import io.github.braayy.bettergui.input.InputType;
 import io.github.braayy.bettergui.slot.*;
 import io.github.braayy.bettergui.handler.GUISlotClickHandler;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public abstract class GUI implements InventoryHolder {
+    public static final String INPUT_KEY = "BetterGUI:Input";
+
     final Map<Integer, GUISlot> slotMap = new HashMap<>();
 
     private String title;
@@ -33,7 +41,7 @@ public abstract class GUI implements InventoryHolder {
     protected Player player;
 
     private Inventory openInventory;
-    boolean updating, backing;
+    boolean updating, backing, waitingInput;
 
     public GUI() {}
 
@@ -188,14 +196,14 @@ public abstract class GUI implements InventoryHolder {
     }
 
     public void simpleUpdate() {
-        update(true);
+        update(true, false);
     }
 
     public void fullUpdate() {
-        update(false);
+        update(false, false);
     }
 
-    private void update(boolean simple) {
+    private void update(boolean simple, boolean internal) {
         Objects.requireNonNull(this.player, "GUI not open for anyone to update");
 
         this.updating = true;
@@ -218,6 +226,10 @@ public abstract class GUI implements InventoryHolder {
             Inventory inventory = getInventory();
             if (!simple) {
                 this.player.openInventory(inventory);
+
+                if (internal) {
+                    this.updating = false;
+                }
             } else {
                 this.player.updateInventory();
                 this.updating = false;
@@ -237,6 +249,10 @@ public abstract class GUI implements InventoryHolder {
             Inventory inventory = getInventory();
             if (!simple) {
                 this.player.openInventory(inventory);
+
+                if (internal) {
+                    this.updating = false;
+                }
             } else {
                 this.player.updateInventory();
                 this.updating = false;
@@ -257,6 +273,36 @@ public abstract class GUI implements InventoryHolder {
 
         this.player.closeInventory();
         this.player = null;
+    }
+
+    protected void requestInput(InputType inputType, Predicate<String> callback, Duration timeout) {
+        Objects.requireNonNull(this.player, "GUI not open for anyone to get input from");
+
+        JavaPlugin plugin = JavaPlugin.getProvidingPlugin(GUI.class);
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (this.waitingInput) {
+                this.waitingInput = false;
+                this.player.removeMetadata(INPUT_KEY, plugin);
+                this.update(false, true);
+            }
+        }, timeout.toSeconds() * 20L);
+
+        Consumer<String> internalCallback = (input) -> {
+            boolean valid = callback.test(input);
+
+            if (valid) {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    this.waitingInput = false;
+                    task.cancel();
+                    this.player.removeMetadata(INPUT_KEY, plugin);
+                    this.update(false, true);
+                });
+            }
+        };
+
+        this.waitingInput = true;
+        this.player.setMetadata(INPUT_KEY, new InputRequest(inputType, internalCallback, plugin));
+        this.player.closeInventory(InventoryCloseEvent.Reason.PLUGIN);
     }
     // endregion
 
