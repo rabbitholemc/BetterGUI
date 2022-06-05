@@ -1,5 +1,6 @@
 package io.github.braayy.bettergui;
 
+import io.github.braayy.bettergui.input.InputResult;
 import io.github.braayy.bettergui.handler.GUISlotCleanClickHandler;
 import io.github.braayy.bettergui.handler.GUISlotPlaceableCleanClickHandler;
 import io.github.braayy.bettergui.handler.GUISlotPlaceableClickHandler;
@@ -26,6 +27,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class GUI implements InventoryHolder {
@@ -275,7 +277,7 @@ public abstract class GUI implements InventoryHolder {
         this.player = null;
     }
 
-    protected void requestInput(InputType inputType, Predicate<String> callback, Duration timeout) {
+    protected void requestInput(InputType inputType, Function<String, InputResult> handler, Duration timeout) {
         Objects.requireNonNull(this.player, "GUI not open for anyone to get input from");
 
         JavaPlugin plugin = JavaPlugin.getProvidingPlugin(GUI.class);
@@ -288,14 +290,21 @@ public abstract class GUI implements InventoryHolder {
         }, timeout.toSeconds() * 20L);
 
         Consumer<String> internalCallback = (input) -> {
-            boolean valid = callback.test(input);
+            InputResult result = handler.apply(input);
 
-            if (valid) {
+            if (result == InputResult.VALID) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     this.waitingInput = false;
                     task.cancel();
                     this.player.removeMetadata(INPUT_KEY, plugin);
                     this.update(false, true);
+                });
+            } else if (result == InputResult.DO_NOT_OPEN_BACK) {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    this.waitingInput = false;
+                    task.cancel();
+                    this.player.removeMetadata(INPUT_KEY, plugin);
+                    this.close();
                 });
             }
         };

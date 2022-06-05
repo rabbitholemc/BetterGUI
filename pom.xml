@@ -6,7 +6,7 @@
 
     <groupId>io.github.braayy</groupId>
     <artifactId>BetterGUI</artifactId>
-    <version>1.3.2-SNAPSHOT</version>
+    <version>1.3.3-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
