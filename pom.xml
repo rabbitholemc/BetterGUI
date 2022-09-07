@@ -22,12 +22,13 @@
         </repository>
     </distributionManagement>
 
-    <repositories>
-        <repository>
-            <id>papermc-repo</id>
-            <url>https://papermc.io/repo/repository/maven-public/</url>
-        </repository>
-    </repositories>
+    <distributionManagement>
+	  	<repository>
+		    <id>rabbithole-repo</id>
+		    <name>Rabbithole Repository</name>
+		    <url>https://repo.rabbithole.com.br/repository/plugins/</url>
+	   	</repository>
+	</distributionManagement>
 
     <dependencies>
         <dependency>
