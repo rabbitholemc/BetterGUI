@@ -15,14 +15,6 @@
     </properties>
 
     <distributionManagement>
-        <repository>
-            <id>rabbithole-repo</id>
-            <name>Rabbithole Repository</name>
-            <url>https://repo.rabbithole.com.br/repository/plugins/</url>
-        </repository>
-    </distributionManagement>
-
-    <distributionManagement>
 	  	<repository>
 		    <id>rabbithole-repo</id>
 		    <name>Rabbithole Repository</name>
